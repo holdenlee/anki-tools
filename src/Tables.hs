@@ -48,7 +48,7 @@ tableToOutput m fields inp =
         inds = map (\field -> case fmap readMaybe $ M.lookup field m of
                                 Nothing -> Left ""
                                 Just Nothing -> Left (m M.! field)
-                                Just (Just i) -> Right i) fields
+                                Just (Just i) -> Right i) fields --  |> debugShow
         lookupInt str mp = fromMaybe 0 (fmap read $ M.lookup str m)
         globalID = lookupInt "GlobalID" m
         noteIDInd = read (m M.! "NoteID")

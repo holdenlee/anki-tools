@@ -42,9 +42,10 @@ stripSpaces = (>>= (\x -> if x==' ' then [] else [x]))
 
 chinese :: DLookup
 chinese s = do
+  let ss = stripSpaces s
   txt <- readFile chinesePath
   let l = lines txt
-  let mline = find (((stripSpaces s)++" ") `isPrefixOf`) l
+  let mline = find ((ss++" ") `isPrefixOf`) l
   case mline of
     Nothing -> return (Nothing |> trace (s++" not found"))
     Just line -> do
@@ -53,14 +54,16 @@ chinese s = do
                let pron = sublist (i+1) j line
                let slashes = elemIndices '/' line --  |> debugShow
                let def = "\""++(sublist ((slashes!!0)+1) (last slashes) line)++"\"" --  |> debugShow
-               return $ Just $ M.fromList ([("NonEnglish", s),
+               return $ Just $ M.fromList ([("NonEnglish", ss),
                                             ("English", def),
                                             ("Pronunciation", pron),
                                             ("Language", "Chinese")])
 
 updateTableWithEntries :: (M.Map S S) -> [M.Map S S] -> [[S]] -> [[S]]
-updateTableWithEntries m entries datas = 
+updateTableWithEntries m entries data0 = 
     let 
+        --put quotes around the English
+        datas = map (zimap (\i x -> if i == read (m M.! "English") then "\""++x++"\"" else x)) data0
         identifierKey = ((m M.! "Identifier")) --  |> flip debugSummary ("ik:"++))
         identifierInd = read ((m M.! identifierKey)) --  |> flip debugSummary ("ii:"++))
         noteIDInd = read ((m M.! "NoteID")) --   |> flip debugSummary ("nid:"++)) :: Int
@@ -74,7 +77,7 @@ updateTableWithEntries m entries datas =
                                       Just i -> Just (i,x)
                                       Nothing -> Nothing) $ M.toList m
         inds = map (\i -> M.lookup i reverseM) [0..(len - 1)] --  |> debugShow
-        entries2 = nubBy (\x y -> x M.! identifierKey == y M.! identifierKey) entries
+        entries2 = filter (not . (`S.member` s) . (M.! identifierKey)) $ nubBy (\x y -> x M.! identifierKey == y M.! identifierKey) entries
         newLines = imap (\i entry -> map (\case
                                            Just s -> 
                                                if s=="NoteID"
