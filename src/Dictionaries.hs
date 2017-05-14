@@ -54,8 +54,9 @@ chinese s = do
                let slashes = elemIndices '/' line --  |> debugShow
                let def = "\""++(sublist ((slashes!!0)+1) (last slashes) line)++"\"" --  |> debugShow
                return $ Just $ M.fromList ([("NonEnglish", s),
-                                    ("English", def),
-                                    ("Pronunciation", pron)])
+                                            ("English", def),
+                                            ("Pronunciation", pron),
+                                            ("Language", "Chinese")])
 
 updateTableWithEntries :: (M.Map S S) -> [M.Map S S] -> [[S]] -> [[S]]
 updateTableWithEntries m entries datas = 
